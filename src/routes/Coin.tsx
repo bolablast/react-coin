@@ -146,7 +146,7 @@ interface IPriceData {
 }
 
 function Coin() {
-  const { coinId } = useParams();
+  const { coinId } = useParams() as RouteParams;
   const state = useLocation().state as RouteState;
   const priceMatch = useMatch("/:coinId/price");
   const chartMatch = useMatch("/:coinId/chart");
