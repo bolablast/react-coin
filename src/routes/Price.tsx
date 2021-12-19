@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 const Container = styled.main`
   margin-top: 50px;
-  height: 80px;
+  height: 120px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.5);
 `;
 
