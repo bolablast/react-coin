@@ -1,11 +1,13 @@
 import { useQuery } from "react-query";
 import { useParams } from "react-router";
 import { Link } from "react-router-dom";
-import { useLocation, Routes, Route, useMatch } from "react-router-dom";
+import { useLocation, useMatch, Routes, Route } from "react-router-dom";
 import styled from "styled-components";
 import { fetchCoinInfo, fetchCoinTickers } from "../api";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import Chart from "./Chart";
 import Price from "./Price";
+import HeaderTitle from "../Header";
 
 const Overview = styled.div`
   display: flex;
@@ -56,26 +58,10 @@ const Container = styled.div`
   padding: 0px 20px;
 `;
 
-const Header = styled.header`
-  height: 10vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
 const Loader = styled.span`
   text-align: center;
   display: block;
 `;
-
-const Title = styled.h1`
-  font-size: 48px;
-  color: ${({ theme }) => theme.accentColor};
-`;
-
-interface RouteParams {
-  coinId: string;
-}
 
 interface RouteState {
   name: string;
@@ -146,13 +132,16 @@ interface IPriceData {
 }
 
 function Coin() {
-  const { coinId } = useParams() as RouteParams;
+  const { coinId } = useParams() as any;
   const state = useLocation().state as RouteState;
   const priceMatch = useMatch("/:coinId/price");
   const chartMatch = useMatch("/:coinId/chart");
   const { isLoading: infoLoading, data: infoData } = useQuery<InfoData>(
     ["info", coinId],
-    () => fetchCoinInfo(coinId)
+    () => fetchCoinInfo(coinId) /*,
+    {
+      refetchInterval: 5000,
+    } */
   );
   const { isLoading: tickersLoading, data: tickersData } = useQuery<IPriceData>(
     ["tickers", coinId],
@@ -161,11 +150,19 @@ function Coin() {
   const loading = infoLoading || tickersLoading;
   return (
     <Container>
-      <Header>
-        <Title>
-          {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
-        </Title>
-      </Header>
+      <HelmetProvider>
+        <Helmet>
+          <title>
+            {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
+          </title>
+        </Helmet>
+      </HelmetProvider>
+      <HeaderTitle
+        goBack={true}
+        title={
+          state?.name ? state.name : loading ? "Loading..." : infoData?.name
+        }
+      />
       {loading ? (
         <Loader>Loading...</Loader>
       ) : (
@@ -180,8 +177,8 @@ function Coin() {
               <span>${infoData?.symbol}</span>
             </OverviewItem>
             <OverviewItem>
-              <span>Open Source:</span>
-              <span>{infoData?.open_source ? "Yes" : "No"}</span>
+              <span>Price:</span>
+              <span>{tickersData?.quotes.USD.price.toFixed(3)}</span>
             </OverviewItem>
           </Overview>
           <Description>{infoData?.description}</Description>
@@ -195,7 +192,6 @@ function Coin() {
               <span>{tickersData?.max_supply}</span>
             </OverviewItem>
           </Overview>
-
           <Tabs>
             <Tab isActive={chartMatch !== null}>
               <Link to={`/${coinId}/chart`}>Chart</Link>
@@ -205,8 +201,16 @@ function Coin() {
             </Tab>
           </Tabs>
           <Routes>
-            <Route path={`price`} element={<Price />} />
-            <Route path={`chart`} element={<Chart />} />
+            <Route path="chart" element={<Chart coinId={coinId} />} />
+            <Route
+              path="price"
+              element={
+                <Price
+                  priceInfo={tickersData?.quotes.USD}
+                  beta={tickersData?.beta_value}
+                />
+              }
+            />
           </Routes>
         </>
       )}

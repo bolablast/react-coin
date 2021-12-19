@@ -1,27 +1,23 @@
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import { useQuery } from "react-query";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { fetchCoins } from "../api";
+import HeaderTitle from "../Header";
 
 const Container = styled.div`
   padding: 0px 20px;
 `;
 
-const Header = styled.header`
-  height: 10vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
 const CoinsList = styled.ul``;
 
 const Coin = styled.li`
-  background-color: white;
-  color: ${({ theme }) => theme.bgColor};
+  background-color: ${(props) => props.theme.cardBgColor};
+  color: ${({ theme }) => theme.textColor};
   padding: 20px;
   border-radius: 15px;
   margin-bottom: 10px;
+  border: 1px solid white;
   a {
     display: flex;
     align-items: center;
@@ -32,11 +28,6 @@ const Coin = styled.li`
       color: ${({ theme }) => theme.accentColor};
     }
   }
-`;
-
-const Title = styled.h1`
-  font-size: 48px;
-  color: ${({ theme }) => theme.accentColor};
 `;
 
 const Loader = styled.span`
@@ -64,9 +55,12 @@ function Coins() {
   const { isLoading, data } = useQuery<ICoin[]>("allCoins", fetchCoins);
   return (
     <Container>
-      <Header>
-        <Title>코인</Title>
-      </Header>
+      <HelmetProvider>
+        <Helmet>
+          <title>코인</title>
+        </Helmet>
+      </HelmetProvider>
+      <HeaderTitle goBack={false} title="Coins" />
       {isLoading ? (
         <Loader>Loading...</Loader>
       ) : (
